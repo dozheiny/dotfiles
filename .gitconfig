@@ -1,0 +1,31 @@
+[user]
+	email = i.aghamajidi@bluteam.ir
+	name = Iliya Aghamajidi
+	signingKey = "2D9027AA4BFF38A1"
+
+[commit]
+	gpgsign = false
+
+[core]
+	editor = helix
+
+[tag]
+	gpgSign = true
+
+[url "ssh://git@github.com/"]
+	insteadOf = https://github.com/
+
+[includeIf "gitdir:~/Projects/asanbilit/"]
+    path = ~/.asanbilit.gitconfig
+
+[includeIf "gitdir:~/Projects/OpenSource"]
+	path = ~/.public.gitconfig
+	
+[push]
+	autoSetupRemote = true
+#[credential]
+#	helper = manager
+[credential]
+	helper = /usr/lib/git-core/git-credential-libsecret
+[pull]
+	rebase = false

@@ -1,0 +1,7 @@
+[user]
+	email = iliya.aghamajidi@gmail.com
+	name = Iliya Aghamajidi
+	signingKey = "521BE64EDDD4F79C"
+
+[commit]
+	gpgSign = true

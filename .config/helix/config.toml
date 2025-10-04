@@ -1,0 +1,23 @@
+theme = "gruvbox"
+
+[editor]
+line-number = "relative"
+mouse = true
+bufferline = "multiple"
+
+[editor.cursor-shape]
+insert = "bar"
+normal = "block"
+select = "underline"
+
+[editor.file-picker]
+hidden = false
+
+[editor.smart-tab]
+enable = true
+supersede-menu = true
+
+[editor.lsp]
+display-messages = true
+display-inlay-hints = true
+

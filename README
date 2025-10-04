@@ -1,0 +1,4 @@
+cd $HOME
+git pull git@github.com:dozheiny/dotfiles.git
+cd dotfiles
+stow .

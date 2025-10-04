@@ -1,0 +1,74 @@
+[[language]]
+name = "rust"
+auto-format = true
+language-servers = ["rustanalyzer"]
+
+[language-server.rustanalyzer]
+command = "rust-analyzer"
+
+[language-server.rustanalyzer.inlayHints]
+bindingModeHints.enable = false
+closingBraceHints.minLines = 10
+closureReturnTypeHints.enable = "with_block"
+discriminantHints.enable = "fieldless"
+lifetimeElisionHints.enable = "skip_trivial"
+typeHints.hideClosureInitialization = false
+
+[[language]]
+name = "go"
+auto-format = true
+formatter = {command = "gofumpt"}
+language-servers = ["gopls", "golangci-lint-lsp", "snippets-go"]
+
+[language-server.golangci-lint-lsp]
+command = "golangci-lint-langserver"
+
+[language-server.golangci-lint-lsp.config]
+command = ["golangci-lint-langserver", "run", "--out-format", "json", "--issues-exit-code=1"]
+
+[language-server.gopls]
+command = "gopls"
+
+[language-server.gopls.config]
+gofumpt = true
+local = "goimports"
+semanticTokens = true
+"staticcheck" = true
+verboseOutput = true
+completeUnimported = true
+
+[language-server.gopls.analyses]
+fieldalignment = true
+nilness = true
+unusedparams = true
+unusedwrite = true
+useany = true
+
+[language-server.gopls.config.hints]
+assignVariableTypes = true
+compositeLiteralFields = true
+constantValues = true
+functionTypeParameters = true
+parameterNames = true
+rangeVariableTypes = true
+
+
+[[language]]
+name = "elixir"
+scope = "source.elixir"
+injection-regex = "elixir"
+file-types = ["ex", "exs"]
+roots = ["mix.exs"]
+auto-format = true
+diagnostic-severity = "hint"
+indent = {tab-width = 2, unit = " "}
+
+[language-server.elixir-ls]
+command = "elixir-ls"
+
+[[language]]
+name = "text"
+scope = "text.plain"
+auto-format = true
+file-types = ["txt"]
+rulers = [50, 72]
