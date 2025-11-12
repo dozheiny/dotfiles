@@ -9,3 +9,7 @@ zoxide init fish | source
 if test -f $HOME/.sdkman/bin/sdkman-init.sh
     bass source $HOME/.sdkman/bin/sdkman-init.sh
 end
+
+if status is-login
+    bass "eval $(gnome-keyring-daemon --start --components=secrets,pkcs11,ssh)"
+end
