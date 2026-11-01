@@ -1,0 +1,24 @@
+# Replaces stow's default ignore list, so the repo's own files are listed too
+\.git
+\.gitignore
+\.stow-local-ignore
+^/README
+
+# Not dotfiles: restored from an old backup, and untracked
+^/\.asanbilit\.gitconfig\.bak
+^/\.asdf
+^/\.bash_history
+^/\.bash_logout
+^/\.bash_profile
+^/\.m2
+^/\.mongodb
+^/\.ssh
+^/\.viminfo
+^/\.vscode
+^/\.zshrc
+^/Apps
+^/Books
+^/Documents
+^/Downloads
+^/Projects
+^/vpn-routes\.sh

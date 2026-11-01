@@ -1,0 +1,9 @@
+! X11 sessions (i3): 1.5x scale for Chrome, Java, Qt, polybar, rofi
+Xft.dpi:       144
+Xft.antialias: true
+Xft.hinting:   true
+Xft.hintstyle: hintslight
+Xft.rgba:      rgb
+
+Xcursor.theme: Yaru
+Xcursor.size:  36

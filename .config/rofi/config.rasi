@@ -1,0 +1,100 @@
+configuration {
+    modi: "drun,run,window";
+    show-icons: true;
+    icon-theme: "Yaru-prussiangreen-dark";
+    drun-display-format: "{name}";
+    display-drun: "";
+    display-run: "";
+    display-window: "";
+    matching: "fuzzy";
+    sort: true;
+    sorting-method: "fzf";
+    hover-select: true;
+    me-select-entry: "";
+    me-accept-entry: "MousePrimary";
+}
+
+* {
+    bg:      #0e1416e6;
+    surface: #182226;
+    fg:      #dbe5e7;
+    muted:   #6b7f86;
+    accent:  #5ec4b6;
+
+    font: "Ubuntu Sans 12";
+    background-color: transparent;
+    text-color: @fg;
+}
+
+window {
+    width: 560px;
+    location: center;
+    anchor: center;
+    border: 1px;
+    border-color: #dbe5e724;
+    border-radius: 16px;
+    background-color: @bg;
+}
+
+mainbox {
+    padding: 14px;
+    spacing: 10px;
+    children: [ inputbar, listview ];
+}
+
+inputbar {
+    padding: 10px 14px;
+    spacing: 10px;
+    border-radius: 10px;
+    background-color: @surface;
+    children: [ prompt, entry ];
+}
+
+prompt { text-color: @accent; font: "JetBrainsMono Nerd Font 13"; }
+
+entry {
+    placeholder: "Search…";
+    placeholder-color: @muted;
+    cursor: text;
+}
+
+listview {
+    lines: 8;
+    columns: 1;
+    fixed-height: true;
+    scrollbar: false;
+    spacing: 4px;
+    border: 0;
+}
+
+element {
+    padding: 8px 12px;
+    spacing: 12px;
+    border-radius: 10px;
+}
+
+element selected.normal,
+element selected.active {
+    background-color: #5ec4b626;
+    text-color: @accent;
+}
+
+element-icon { size: 24px; }
+element-text { vertical-align: 0.5; text-color: inherit; }
+
+message { padding: 8px; border-radius: 10px; background-color: @surface; }
+textbox { text-color: @fg; }
+
+/* rofi's built-in theme paints unselected rows; keep them transparent */
+element normal.normal,
+element alternate.normal,
+element normal.active,
+element alternate.active {
+    background-color: transparent;
+    text-color: @fg;
+}
+element normal.urgent,
+element alternate.urgent {
+    background-color: transparent;
+    text-color: #e5737a;
+}

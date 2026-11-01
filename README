@@ -1,4 +1,17 @@
-cd $HOME
-git pull git@github.com:dozheiny/dotfiles.git
-cd dotfiles
-stow .
+Install
+    sudo apt install stow git
+    git clone git@github.com:dozheiny/dotfiles.git ~/dotfiles
+    cd ~/dotfiles
+    stow .
+
+If files already exist in $HOME, stow stops with a conflict. To take them over:
+    stow --adopt .    # moves your existing files into this repo
+    git diff          # shows what they changed
+
+Secrets
+    Machine-local values go in ~/.config/fish/conf.d/local.fish, which is ignored.
+    This repo is public. .gitignore is an allowlist, so a new config folder must
+    be added there before git sees it.
+
+Hyprland packages
+    .config/hypr/install-deps.sh

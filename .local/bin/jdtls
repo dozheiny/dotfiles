@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Eclipse JDT language server (Java) for helix and nvim — ~/.local/share/jdtls, Lombok enabled.
+# Project index lives in ~/.cache/jdtls/<client>/<project>-<hash>, so it survives reboots and
+# helix + nvim can have the same project open at once (JDTLS_CLIENT is set by each editor).
+
+home="$HOME/.local/share/jdtls"
+root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+data="${XDG_CACHE_HOME:-$HOME/.cache}/jdtls/${JDTLS_CLIENT:-default}/$(basename "$root")-$(printf %s "$root" | md5sum | cut -c1-8)"
+
+# The server itself needs Java 21+, whatever JAVA_HOME the project shell has
+for jdk in /usr/lib/jvm/java-25-openjdk-amd64 /usr/lib/jvm/java-21-openjdk-amd64; do
+    [[ -x $jdk/bin/java ]] && { export JAVA_HOME=$jdk PATH="$jdk/bin:$PATH"; break; }
+done
+
+exec "$home/bin/jdtls" \
+    --jvm-arg="-javaagent:$home/lombok.jar" \
+    --jvm-arg="-Xmx2G" \
+    --jvm-arg="-XX:+UseParallelGC" \
+    -data "$data" "$@"

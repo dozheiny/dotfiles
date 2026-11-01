@@ -1,13 +1,13 @@
 [user]
 	email = i.aghamajidi@bluteam.ir
 	name = Iliya Aghamajidi
-	signingKey = "2D9027AA4BFF38A1"
+	signingKey = "5A8077B891FC8599"
 
 [commit]
-	gpgsign = false
+	gpgsign = true
 
 [core]
-	editor = helix
+	editor = hx
 
 [tag]
 	gpgSign = true
@@ -15,17 +15,26 @@
 [url "ssh://git@github.com/"]
 	insteadOf = https://github.com/
 
-[includeIf "gitdir:~/Projects/asanbilit/"]
-    path = ~/.asanbilit.gitconfig
+[url "https://i.aghamajidi@gitlab.com/"]
+	insteadOf = https://gitlab.com/
 
-[includeIf "gitdir:~/Projects/OpenSource"]
-	path = ~/.public.gitconfig
-	
+#[includeIf "gitdir:~/Projects/asanbilit/"]
+#    path = ~/.asanbilit.gitconfig
+
 [push]
 	autoSetupRemote = true
-#[credential]
-#	helper = manager
-[credential]
-	helper = /usr/lib/git-core/git-credential-libsecret
+
+# [credential]
+# 	helper = /usr/lib/git-core/git-credential-libsecret
+
 [pull]
 	rebase = false
+[credential]
+	helper = store
+[credential "https://github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+

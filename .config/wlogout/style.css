@@ -1,0 +1,38 @@
+* {
+    background-image: none;
+    box-shadow: none;
+    font-family: "Ubuntu Sans";
+    font-size: 15px;
+}
+
+window {
+    background-color: rgba(14, 20, 22, 0.6);
+}
+
+button {
+    color: #dbe5e7;
+    background-color: rgba(24, 34, 38, 0.75);
+    border: 1px solid rgba(219, 229, 231, 0.12);
+    border-radius: 18px;
+    margin: 230px 10px;
+    background-repeat: no-repeat;
+    background-position: center 40%;
+    background-size: 22%;
+    transition: all 250ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+button:focus,
+button:hover {
+    background-color: rgba(94, 196, 182, 0.18);
+    border-color: rgba(94, 196, 182, 0.7);
+    color: #5ec4b6;
+    background-size: 26%;
+}
+
+#shutdown:hover { background-color: rgba(229, 115, 122, 0.18); border-color: rgba(229, 115, 122, 0.7); color: #e5737a; }
+
+#lock     { background-image: image(url("/usr/share/wlogout/icons/lock.png")); }
+#logout   { background-image: image(url("/usr/share/wlogout/icons/logout.png")); }
+#suspend  { background-image: image(url("/usr/share/wlogout/icons/suspend.png")); }
+#reboot   { background-image: image(url("/usr/share/wlogout/icons/reboot.png")); }
+#shutdown { background-image: image(url("/usr/share/wlogout/icons/shutdown.png")); }

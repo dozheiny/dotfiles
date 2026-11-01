@@ -1,0 +1,81 @@
+[global]
+    monitor = 0
+    follow = mouse
+    origin = top-right
+    # Measured from below waybar's reserved area, so this matches gaps_out = 10
+    offset = (10, 10)
+    width = 360
+    height = (0, 220)
+    notification_limit = 5
+    gap_size = 8
+
+    progress_bar = true
+    progress_bar_height = 6
+    progress_bar_frame_width = 0
+    progress_bar_min_width = 240
+    progress_bar_max_width = 360
+    progress_bar_corner_radius = 3
+
+    padding = 14
+    horizontal_padding = 14
+    text_icon_padding = 14
+    frame_width = 1
+    frame_color = "#dbe5e724"
+    separator_color = frame
+    corner_radius = 12
+    sort = yes
+
+    font = Ubuntu Sans, Vazirmatn 11
+    markup = full
+    format = "<span size='small' foreground='#6b7f86'>%a</span>\n<b>%s</b>\n%b"
+    alignment = left
+    vertical_alignment = center
+    ellipsize = end
+    word_wrap = yes
+    show_age_threshold = 60
+    show_indicators = no
+
+    icon_theme = Yaru-prussiangreen-dark, Yaru
+    enable_recursive_icon_lookup = true
+    icon_position = left
+    icon_corner_radius = 8
+    min_icon_size = 32
+    max_icon_size = 48
+
+    history_length = 30
+    mouse_left_click = do_action, close_current
+    mouse_middle_click = close_all
+    mouse_right_click = close_current
+
+    layer = overlay
+
+[urgency_low]
+    background = "#0e1416cc"
+    foreground = "#b8c4c7"
+    highlight = "#5ec4b6, #7fb4e0"
+    timeout = 4
+
+[urgency_normal]
+    background = "#0e1416cc"
+    foreground = "#dbe5e7"
+    highlight = "#5ec4b6, #7fb4e0"
+    timeout = 8
+
+[urgency_critical]
+    background = "#1f1416cc"
+    foreground = "#dbe5e7"
+    frame_color = "#e5737a"
+    highlight = "#e5737a"
+    timeout = 0
+
+# Volume / brightness indicator: compact, no title line
+[osd]
+    appname = osd
+    format = "%s"
+    timeout = 1
+    history_ignore = yes
+
+# Screenshot thumbnail: big enough to recognise the capture
+[screenshot]
+    appname = screenshot
+    max_icon_size = 96

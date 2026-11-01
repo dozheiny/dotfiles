@@ -1,0 +1,10 @@
+# Sourced by GDM for X11 sessions. Only the i3 session needs this; Hyprland sets its own env.
+if [ "$DESKTOP_SESSION" = "i3" ] || [ "$XDG_SESSION_DESKTOP" = "i3" ]; then
+    xrdb -merge "$HOME/.Xresources"
+
+    export XCURSOR_THEME=Yaru
+    export XCURSOR_SIZE=36
+    # Java/Swing apps (Burp, IDA, JetBrains) render blank in tiling WMs without this
+    export _JAVA_AWT_WM_NONREPARENTING=1
+    export SSH_AUTH_SOCK="/run/user/$(id -u)/gcr/ssh"
+fi

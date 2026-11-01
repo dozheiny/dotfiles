@@ -1,0 +1,215 @@
+# i3 — ASUS Vivobook S15 (Meteor Lake, 2880x1620@120)
+# Mirrors ~/.config/hypr/hyprland.conf: same palette, keys and apps.
+# Docs: https://i3wm.org/docs/userguide.html
+#
+# Pieces:  picom (corners, blur, shadows, animations) · polybar · dunst · rofi
+#          xss-lock + i3lock (idle/lock) · autotiling (dwindle-style splits)
+# DPI/env: ~/.xprofile, ~/.Xresources, ~/.config/xsettingsd
+
+
+################
+### PROGRAMS ###
+################
+
+set $mod         Mod4
+set $terminal    kitty
+set $fileManager nautilus
+set $browser     google-chrome
+set $menu        rofi -show drun -config ~/.config/rofi/i3.rasi
+set $scripts     ~/.config/i3/scripts
+
+
+#################
+### AUTOSTART ###
+#################
+
+# Hyprland's Wayland settings outlive it in the systemd user environment; clear them so
+# D-Bus/systemd-started apps don't try a dead Wayland socket, then publish i3's environment
+exec --no-startup-id systemctl --user unset-environment WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE HYPRLAND_CMD GDK_BACKEND QT_QPA_PLATFORM QT_WAYLAND_DISABLE_WINDOWDECORATION ELECTRON_OZONE_PLATFORM_HINT MOZ_ENABLE_WAYLAND HYPRCURSOR_SIZE HYPRCURSOR_THEME; dbus-update-activation-environment --systemd --all
+exec --no-startup-id /usr/libexec/polkit-mate-authentication-agent-1
+exec --no-startup-id gnome-keyring-daemon --start --components=secrets
+exec --no-startup-id xsettingsd
+exec --no-startup-id picom
+exec --no-startup-id dunst
+exec --no-startup-id nm-applet
+# clipboard history in the background (tray icon only; Super+Shift+V opens the picker)
+exec --no-startup-id copyq --start-server
+exec --no-startup-id autotiling
+exec --no-startup-id xsetroot -cursor_name left_ptr
+
+# Idle: dim 2.5 min → lock 5 min → screen off 5.5 min → suspend 15 min (battery only, see lock.sh)
+exec --no-startup-id xset s 150 150
+exec --no-startup-id xset dpms 0 0 330
+exec --no-startup-id xss-lock --transfer-sleep-lock -n $scripts/dim.sh -- $scripts/lock.sh
+
+# Keyboard, touchpad, monitors (+ wallpaper and bar). Re-run on every reload.
+exec_always --no-startup-id $scripts/input.sh
+exec_always --no-startup-id $scripts/displays.sh
+exec_always --no-startup-id $scripts/lid-watch.sh
+
+# Same as Hyprland's exec-once list (XDG autostart is not used — it would start orca, onboard, ESET…)
+exec --no-startup-id /usr/bin/shenavar --autostart
+exec --no-startup-id ~/Apps/jetbrains-toolbox-3.4.3.81140/bin/jetbrains-toolbox --minimize
+
+
+#####################
+### LOOK AND FEEL ###
+#####################
+
+# Only visible on tabbed/stacked containers; corners and shadows come from picom
+font pango:Ubuntu Sans Medium 10
+title_align center
+
+default_border          pixel 3
+default_floating_border pixel 3
+hide_edge_borders       none
+
+# Logical px (i3 scales by DPI, like Hyprland): 12px between windows, 15px at the edges
+gaps inner 8
+gaps outer 2
+# polybar floats over i3 (override-redirect): bar ends at 57px, windows start 15px below it
+gaps top   40
+
+# Explicit ff alpha: translucent windows (kitty) get 32-bit frames, where bare #rrggbb borders vanish under picom
+#  class                  border   bg       text     indicator child_border
+client.focused            #5ec4b6ff  #182226ff  #dbe5e7ff  #5ec4b6ff   #5ec4b6ff
+client.focused_inactive   #24333aff  #0e1416ff  #6b7f86ff  #24333aff   #24333aff
+client.unfocused          #24333aff  #0e1416ff  #6b7f86ff  #24333aff   #24333aff
+client.urgent             #e5737aff  #e5737aff  #0e1416ff  #e5737aff   #e5737aff
+client.placeholder        #24333aff  #0e1416ff  #6b7f86ff  #24333aff   #24333aff
+client.background         #0e1416
+
+focus_follows_mouse         yes
+mouse_warping               output
+focus_on_window_activation  focus
+popup_during_fullscreen     smart
+floating_modifier           $mod
+tiling_drag                 modifier titlebar
+
+
+###################
+### KEYBINDINGS ###
+###################
+# Super+Space is left free on purpose: it switches EN/FA (xkb grp:win_space_toggle).
+
+# Apps
+bindsym $mod+Return       exec $terminal
+bindsym $mod+e            exec $fileManager
+bindsym $mod+b            exec $browser
+bindsym $mod+d            exec --no-startup-id $menu
+bindsym $mod+Shift+v      exec --no-startup-id $scripts/clipboard.sh
+bindsym $mod+Shift+c      exec --no-startup-id $scripts/colorpick.sh
+
+# Session
+bindsym $mod+l            exec --no-startup-id loginctl lock-session
+bindsym $mod+m            exec --no-startup-id $scripts/powermenu.sh
+bindsym $mod+Shift+m      exit
+bindsym $mod+Shift+w      exec --no-startup-id ~/.config/polybar/launch.sh
+bindsym $mod+Shift+r      restart
+bindsym $mod+Shift+p      exec --no-startup-id $scripts/displays.sh
+
+# Notifications
+bindsym $mod+n            exec --no-startup-id dunstctl history-pop
+bindsym $mod+Shift+n      exec --no-startup-id dunstctl close-all
+
+# Windows
+bindsym $mod+q            kill
+bindsym $mod+v            floating toggle
+bindsym $mod+f            fullscreen toggle
+# "Maximize, keep bar + gaps": tabbed layout shows only the focused window
+bindsym $mod+Shift+f      layout toggle tabbed split
+bindsym $mod+j            layout toggle split
+bindsym $mod+c            move position center
+bindsym $mod+a            focus parent
+bindsym $mod+Shift+a      focus child
+
+# Screenshots (saved to ~/Pictures/Screenshots, same naming as GNOME)
+bindsym Print             exec --no-startup-id $scripts/screenshot.sh region-edit
+bindsym Ctrl+Print        exec --no-startup-id $scripts/screenshot.sh region
+bindsym Shift+Print       exec --no-startup-id $scripts/screenshot.sh screen
+
+# Focus / move / resize
+bindsym $mod+Left         focus left
+bindsym $mod+Right        focus right
+bindsym $mod+Up           focus up
+bindsym $mod+Down         focus down
+
+bindsym $mod+Shift+Left   move left  40 px
+bindsym $mod+Shift+Right  move right 40 px
+bindsym $mod+Shift+Up     move up    40 px
+bindsym $mod+Shift+Down   move down  40 px
+
+bindsym $mod+Ctrl+Left    resize shrink width  60 px or 3 ppt
+bindsym $mod+Ctrl+Right   resize grow   width  60 px or 3 ppt
+bindsym $mod+Ctrl+Up      resize shrink height 60 px or 3 ppt
+bindsym $mod+Ctrl+Down    resize grow   height 60 px or 3 ppt
+
+# Workspaces
+bindsym $mod+1 workspace number 1
+bindsym $mod+2 workspace number 2
+bindsym $mod+3 workspace number 3
+bindsym $mod+4 workspace number 4
+bindsym $mod+5 workspace number 5
+bindsym $mod+6 workspace number 6
+bindsym $mod+7 workspace number 7
+bindsym $mod+8 workspace number 8
+bindsym $mod+9 workspace number 9
+bindsym $mod+0 workspace number 10
+
+bindsym $mod+Shift+1 move container to workspace number 1;  workspace number 1
+bindsym $mod+Shift+2 move container to workspace number 2;  workspace number 2
+bindsym $mod+Shift+3 move container to workspace number 3;  workspace number 3
+bindsym $mod+Shift+4 move container to workspace number 4;  workspace number 4
+bindsym $mod+Shift+5 move container to workspace number 5;  workspace number 5
+bindsym $mod+Shift+6 move container to workspace number 6;  workspace number 6
+bindsym $mod+Shift+7 move container to workspace number 7;  workspace number 7
+bindsym $mod+Shift+8 move container to workspace number 8;  workspace number 8
+bindsym $mod+Shift+9 move container to workspace number 9;  workspace number 9
+bindsym $mod+Shift+0 move container to workspace number 10; workspace number 10
+
+bindsym $mod+Tab workspace back_and_forth
+bindsym --whole-window $mod+button4 workspace prev_on_output
+bindsym --whole-window $mod+button5 workspace next_on_output
+
+# Scratchpad
+bindsym $mod+s            scratchpad show
+bindsym $mod+Shift+s      move scratchpad
+
+# Media / hardware keys (with on-screen indicator)
+bindsym XF86AudioRaiseVolume  exec --no-startup-id $scripts/osd.sh volume-up
+bindsym XF86AudioLowerVolume  exec --no-startup-id $scripts/osd.sh volume-down
+bindsym XF86AudioMute         exec --no-startup-id $scripts/osd.sh volume-mute
+bindsym XF86AudioMicMute      exec --no-startup-id $scripts/osd.sh mic-mute
+bindsym XF86MonBrightnessUp   exec --no-startup-id $scripts/osd.sh brightness-up
+bindsym XF86MonBrightnessDown exec --no-startup-id $scripts/osd.sh brightness-down
+
+bindsym XF86AudioNext  exec --no-startup-id playerctl next
+bindsym XF86AudioPause exec --no-startup-id playerctl play-pause
+bindsym XF86AudioPlay  exec --no-startup-id playerctl play-pause
+bindsym XF86AudioPrev  exec --no-startup-id playerctl previous
+
+
+##############################
+### WINDOWS AND WORKSPACES ###
+##############################
+
+# Every window gets the focus border, even ones that ask for no decorations (kitty: hide_window_decorations)
+for_window [all] border pixel 3
+
+# Utilities: float, 900x600 logical (×1.5), centered
+for_window [class="(?i)^(pavucontrol|blueman-manager|nm-connection-editor|gnome-calculator|org\.gnome\.calculator|gpick|copyq|arandr)$"] floating enable, resize set 1350 900, move position center
+
+# File pickers
+for_window [title="^(Open File|Open Folder|Save As|Save File|File Upload|Select a File|Choose Files)"] floating enable, move position center
+for_window [window_role="(?i)^(pop-up|bubble|dialog|task_dialog)$"] floating enable
+for_window [window_type="dialog"] floating enable
+
+# Picture-in-picture: small, pinned on every workspace, bottom-right
+for_window [title="^(Picture-in-Picture|Picture in picture)$"] floating enable, sticky enable, resize set 720 405, move position 2130 1185
+
+# JetBrains popups/tooltips steal focus otherwise
+no_focus [class="^jetbrains-" title="^win[0-9]+$"]
+for_window [class="^jetbrains-" title="^win[0-9]+$"] floating enable, border none
+
+# Don't let the toolbox tray window tile
+for_window [class="(?i)^jetbrains-toolbox$"] floating enable

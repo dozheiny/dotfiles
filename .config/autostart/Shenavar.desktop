@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Shenavar
+Comment=Shenavar startup script
+Exec=/usr/bin/shenavar --autostart
+StartupNotify=false
+Terminal=false

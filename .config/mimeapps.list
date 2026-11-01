@@ -1,0 +1,18 @@
+[Default Applications]
+text/html=google-chrome.desktop
+x-scheme-handler/http=google-chrome.desktop
+x-scheme-handler/https=google-chrome.desktop
+x-scheme-handler/about=google-chrome.desktop
+x-scheme-handler/unknown=google-chrome.desktop
+x-scheme-handler/claude-cli=claude-code-url-handler.desktop
+x-scheme-handler/throne=throne-url-handler.desktop
+x-scheme-handler/jetbrains=jetbrainsd.desktop
+x-scheme-handler/jetbrains-gateway=jetbrains-gateway.desktop
+application/x-extension-burp=install4j_2hnd2z-BurpSuite.desktop
+x-scheme-handler/burp=install4j_2hnd2z-BurpSuite.desktop
+video/mp4=vlc.desktop
+inode/directory=io.github.yappologistic.Maia.desktop
+x-scheme-handler/zcode=zcode.desktop
+
+[Added Associations]
+video/mp4=vlc.desktop;

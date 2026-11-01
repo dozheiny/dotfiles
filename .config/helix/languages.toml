@@ -1,48 +1,32 @@
-[[language]]
-name = "rust"
-auto-format = true
-language-servers = ["rustanalyzer"]
+# Language setup for Helix — Neovim reads this same file (~/.config/nvim/lua/helix/lsp.lua),
+# so servers, settings and formatters here apply to both editors.
+# Check a language with:  hx --health <lang>
 
-[language-server.rustanalyzer]
-command = "rust-analyzer"
 
-[language-server.rustanalyzer.inlayHints]
-bindingModeHints.enable = false
-closingBraceHints.minLines = 10
-closureReturnTypeHints.enable = "with_block"
-discriminantHints.enable = "fieldless"
-lifetimeElisionHints.enable = "skip_trivial"
-typeHints.hideClosureInitialization = false
-
+# ── Go ─────────────────────────────────────────────────────────────────────
+# gopls + golangci-lint (v2). On save: goimports (adds/removes imports) then gofumpt.
+# Debugging: dlv (helix built-in template), `space G`.
 [[language]]
 name = "go"
 auto-format = true
-formatter = {command = "gofumpt"}
-language-servers = ["gopls", "golangci-lint-lsp", "snippets-go"]
-
-[language-server.golangci-lint-lsp]
-command = "golangci-lint-langserver"
-
-[language-server.golangci-lint-lsp.config]
-command = ["golangci-lint-langserver", "run", "--out-format", "json", "--issues-exit-code=1"]
-
-[language-server.gopls]
-command = "gopls"
+formatter = { command = "bash", args = ["-c", "set -o pipefail; goimports | gofumpt"] }
+language-servers = ["gopls", "golangci-lint-lsp"]
 
 [language-server.gopls.config]
 gofumpt = true
-local = "goimports"
+staticcheck = true
 semanticTokens = true
-"staticcheck" = true
-verboseOutput = true
 completeUnimported = true
+usePlaceholders = true
+completeFunctionCalls = true
+directoryFilters = ["-.git", "-node_modules", "-vendor"]
 
-[language-server.gopls.analyses]
-fieldalignment = true
+[language-server.gopls.config.analyses]
 nilness = true
 unusedparams = true
 unusedwrite = true
 useany = true
+shadow = true
 
 [language-server.gopls.config.hints]
 assignVariableTypes = true
@@ -52,23 +36,192 @@ functionTypeParameters = true
 parameterNames = true
 rangeVariableTypes = true
 
+[language-server.golangci-lint-lsp]
+command = "golangci-lint-langserver"
 
+[language-server.golangci-lint-lsp.config]
+command = ["golangci-lint", "run", "--output.json.path=stdout", "--show-stats=false", "--issues-exit-code=1"]
+
+
+# ── Rust ───────────────────────────────────────────────────────────────────
+# rust-analyzer (formats with rustfmt), clippy on save. Debugging: lldb-dap, `space G`.
+[[language]]
+name = "rust"
+auto-format = true
+language-servers = ["rust-analyzer"]
+
+# lldb-dap + Rust's pretty-printers (Vec/String/HashMap show as values, not raw structs)
+[language.debugger]
+name = "lldb-dap"
+transport = "stdio"
+command = "lldb-dap"
+
+[[language.debugger.templates]]
+name = "binary"
+request = "launch"
+completion = [{ name = "binary", completion = "filename" }]
+args = { program = "{0}", initCommands = ["command script import /home/iaghamajidi/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/etc/lldb_lookup.py"] }
+
+[[language.debugger.templates]]
+name = "binary (terminal)"
+request = "launch"
+completion = [{ name = "binary", completion = "filename" }]
+args = { program = "{0}", runInTerminal = true, initCommands = ["command script import /home/iaghamajidi/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/etc/lldb_lookup.py"] }
+
+[[language.debugger.templates]]
+name = "attach"
+request = "attach"
+completion = ["pid"]
+args = { pid = "{0}", initCommands = ["command script import /home/iaghamajidi/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/etc/lldb_lookup.py"] }
+
+[language-server.rust-analyzer.config]
+check.command = "clippy"
+cargo.features = "all"
+cargo.buildScripts.enable = true
+procMacro.enable = true
+imports.granularity.group = "module"
+imports.prefix = "self"
+completion.fullFunctionSignatures.enable = true
+diagnostics.experimental.enable = false
+
+[language-server.rust-analyzer.config.inlayHints]
+bindingModeHints.enable = false
+closingBraceHints.minLines = 10
+closureReturnTypeHints.enable = "with_block"
+discriminantHints.enable = "fieldless"
+lifetimeElisionHints.enable = "skip_trivial"
+typeHints.hideClosureInitialization = false
+
+
+# ── Elixir ─────────────────────────────────────────────────────────────────
+# ElixirLS (~/.local/share/elixir-ls; builds itself on first start). Formats with `mix format`.
+# Debugging: elixir-ls-debug, `space G` → mix test / phx.server / mix run.
 [[language]]
 name = "elixir"
-scope = "source.elixir"
-injection-regex = "elixir"
-file-types = ["ex", "exs"]
-roots = ["mix.exs"]
 auto-format = true
 diagnostic-severity = "hint"
-indent = {tab-width = 2, unit = " "}
+language-servers = ["elixir-ls"]
+
+[language.debugger]
+name = "elixir-ls"
+transport = "stdio"
+command = "elixir-ls-debug"
+
+[[language.debugger.templates]]
+name = "mix test (file)"
+request = "launch"
+completion = [{ name = "test file", completion = "filename" }]
+args = { task = "test", taskArgs = ["{0}", "--trace"], startApps = true, requireFiles = ["test/**/test_helper.exs", "{0}"] }
+
+[[language.debugger.templates]]
+name = "mix phx.server"
+request = "launch"
+completion = []
+args = { task = "phx.server", startApps = true }
+
+[[language.debugger.templates]]
+name = "mix run"
+request = "launch"
+completion = []
+args = { task = "run", taskArgs = ["--no-halt"], startApps = true }
+
+[[language]]
+name = "heex"
+auto-format = true
+language-servers = ["elixir-ls"]
 
 [language-server.elixir-ls]
 command = "elixir-ls"
+timeout = 120          # first start compiles ElixirLS and runs dialyzer
+
+[language-server.elixir-ls.config.elixirLS]
+dialyzerEnabled = true
+incrementalDialyzer = true
+suggestSpecs = true
+fetchDeps = false
+autoInsertRequiredAlias = true
+signatureAfterComplete = true
+
+
+# ── Prose ──────────────────────────────────────────────────────────────────
+[[language]]
+name = "markdown"
+soft-wrap = { enable = true, wrap-at-text-width = true }
+text-width = 100
 
 [[language]]
 name = "text"
 scope = "text.plain"
-auto-format = true
 file-types = ["txt"]
 rulers = [50, 72]
+soft-wrap = { enable = true }
+
+
+# ── Java ───────────────────────────────────────────────────────────────────
+# Server: ~/.local/bin/jdtls (eclipse.jdt.ls 1.63 + Lombok, index in ~/.cache/jdtls)
+# Maven/Gradle projects are detected from pom.xml / build.gradle(.kts) / settings.gradle.
+[[language]]
+name = "java"
+language-servers = ["jdtls"]
+roots = ["pom.xml", "build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts", "mvnw", "gradlew", ".git"]
+indent = { tab-width = 4, unit = "    " }
+auto-format = false   # jdtls formats on `:fmt` / `=`; on-save formatting churns diffs in shared repos
+rulers = [120]
+
+[language-server.jdtls]
+command = "jdtls"
+environment = { JDTLS_CLIENT = "helix" }
+timeout = 60          # first import of a big Maven project is slow
+
+[language-server.jdtls.config.java]
+autobuild.enabled = true
+maxConcurrentBuilds = 2
+signatureHelp.enabled = true
+signatureHelp.description.enabled = true
+contentProvider.preferred = "fernflower"
+references.includeDecompiledSources = true
+eclipse.downloadSources = true
+maven.downloadSources = true
+import.gradle.enabled = true
+import.maven.enabled = true
+configuration.updateBuildConfiguration = "automatic"
+inlayHints.parameterNames.enabled = "literals"
+saveActions.organizeImports = false
+sources.organizeImports = { starThreshold = 9999, staticStarThreshold = 9999 }
+codeGeneration = { toString.template = "${object.className}{${member.name()}=${member.value}, ${otherMembers}}", hashCodeEquals.useJava7Objects = true, useBlocks = true, generateComments = false }
+
+[language-server.jdtls.config.java.completion]
+enabled = true
+guessMethodArguments = "insertBestGuessedArguments"
+importOrder = ["java", "javax", "jakarta", "org", "com", ""]
+favoriteStaticMembers = [
+    "org.junit.jupiter.api.Assertions.*",
+    "org.junit.jupiter.api.Assumptions.*",
+    "org.junit.jupiter.api.DynamicTest.*",
+    "org.mockito.Mockito.*",
+    "org.mockito.ArgumentMatchers.*",
+    "org.mockito.Answers.*",
+    "org.assertj.core.api.Assertions.*",
+    "org.hamcrest.Matchers.*",
+    "java.util.Objects.requireNonNull",
+    "java.util.Objects.requireNonNullElse",
+]
+filteredTypes = ["com.sun.*", "sun.*", "jdk.*", "java.awt.*", "org.graalvm.*", "io.micrometer.shaded.*"]
+
+# Installed JDKs — projects compile against the version their pom/gradle asks for
+[[language-server.jdtls.config.java.configuration.runtimes]]
+name = "JavaSE-11"
+path = "/usr/lib/jvm/java-11-openjdk-amd64"
+
+[[language-server.jdtls.config.java.configuration.runtimes]]
+name = "JavaSE-17"
+path = "/usr/lib/jvm/java-17-openjdk-amd64"
+
+[[language-server.jdtls.config.java.configuration.runtimes]]
+name = "JavaSE-21"
+path = "/usr/lib/jvm/java-21-openjdk-amd64"
+
+[[language-server.jdtls.config.java.configuration.runtimes]]
+name = "JavaSE-25"
+path = "/usr/lib/jvm/java-25-openjdk-amd64"
+default = true
