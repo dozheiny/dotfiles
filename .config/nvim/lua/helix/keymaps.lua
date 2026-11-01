@@ -30,22 +30,40 @@ api.nvim_create_autocmd("ModeChanged", {
 
 local function line(r) return api.nvim_buf_get_lines(0, r - 1, r, false)[1] or "" end
 local function last_row() return api.nvim_buf_line_count(0) end
-local function char(p) local l = line(p[1]); return p[2] < #l and l:sub(p[2] + 1, p[2] + 1) or "\n" end
 local function before(a, b) return a[1] < b[1] or (a[1] == b[1] and a[2] < b[2]) end
 
+-- A word motion walks char by char, so it reads each line once: copying a long line out of
+-- the buffer at every step would freeze on minified files. word_motion resets this.
+local walked = {}
+local function walked_line(r)
+    walked[r] = walked[r] or line(r)
+    return walked[r]
+end
+
+local function char(p) local l = walked_line(p[1]); return p[2] < #l and l:sub(p[2] + 1, p[2] + 1) or "\n" end
+
+-- Step one character; a line end counts as one, and a letter and its accents are one (vim's
+-- own idea of a character). Only a window around p is measured, so a step costs the same on any line.
+local CHAR_WINDOW = 32
+
 local function next_pos(p)
-    if p[2] < #line(p[1]) then return { p[1], p[2] + 1 } end
+    local l = walked_line(p[1])
+    if p[2] < #l then return { p[1], p[2] + vim.fn.byteidx(l:sub(p[2] + 1, p[2] + CHAR_WINDOW), 1) } end
     if p[1] < last_row() then return { p[1] + 1, 0 } end
 end
 
 local function prev_pos(p)
-    if p[2] > 0 then return { p[1], p[2] - 1 } end
-    if p[1] > 1 then return { p[1] - 1, #line(p[1] - 1) } end
+    if p[2] > 0 then
+        local s = walked_line(p[1]):sub(math.max(p[2] - CHAR_WINDOW + 1, 1), p[2])
+        return { p[1], p[2] - #s + vim.fn.byteidx(s, vim.fn.strchars(s, 1) - 1) }
+    end
+    if p[1] > 1 then return { p[1] - 1, #walked_line(p[1] - 1) } end
 end
 
--- Character class: "space" (incl. line ends), "word" (letters, digits, _, non-ASCII), "punct"
+-- Character class: "eol", "space", "word" (letters, digits, _, non-ASCII), "punct"
 local function class(c, long)
-    if c == "\n" or c:match("%s") then return "space" end
+    if c == "\n" then return "eol" end
+    if c:match("%s") then return "space" end
     if long or c:match("[%w_]") or c:byte() >= 0x80 then return "word" end
     return "punct"
 end
@@ -77,85 +95,43 @@ local function select(anchor, head)
     end
 end
 
--- Word motions. Each returns the new (anchor, head) given where the motion starts.
-local motions = {}
+-- Does a word motion stop between these two neighbouring chars? (prev is the one already walked over)
+local function is_target(kind, prev, nxt, long)
+    local p, n = class(prev, long), class(nxt, long)
+    if p == n then return false end
+    if kind == "next_start" then return n ~= "space" end
+    return n == "eol" or (p ~= "space" and p ~= "eol")
+end
 
--- w / W: from start to just before the next word
-function motions.next_start(start, long)
-    local p = start
-    if char(p) == "\n" then                    -- at a line end: continue on the next line
-        p = next_pos(p)
-        if not p then return start, start end
-        while char(p):match("^[ \t]$") and next_pos(p) do p = next_pos(p) end
-        start = p
-    end
-    local function skip(cond)                  -- advance while cond holds, without leaving the line
-        while cond(char(p)) do
-            local n = next_pos(p)
-            if not n or n[1] ~= p[1] then return end
-            p = n
+-- Helix's word motion (helix-core range_to_target). Only the head matters, not the current
+-- selection: walk from it to the next target. Returns the new anchor and head, or nothing
+-- at the very end/start of the buffer, where there is nowhere to go.
+local function word_move(kind, head, long)
+    local step = kind == "prev_start" and prev_pos or next_pos
+    local anchor, last, p = head, head, step(head)
+    while p and char(p) == "\n" do last, p = p, step(p) end
+    if not p then return end
+    if char(last) == "\n" then anchor = p end
+    local first = p
+    while p do
+        if is_target(kind, char(last), char(p), long) then
+            if p ~= first then break end
+            anchor = p                                  -- already at a boundary: the selection starts past it
         end
+        last, p = p, step(p)
     end
-    local c = class(char(p), long)
-    if c ~= "space" then skip(function(ch) return ch ~= "\n" and class(ch, long) == c end) end
-    skip(function(ch) return ch == " " or ch == "\t" end)
-    -- p is on the next word (or the line end); the selection stops just before it
-    return start, before(start, p) and prev_pos(p) or p
-end
-
--- e / E: from start to the end of the next word
-function motions.next_end(start, long)
-    local p = start
-    while class(char(p), long) == "space" do
-        local n = next_pos(p)
-        if not n then return start, p end
-        p = n
-    end
-    local c = class(char(p), long)
-    while true do
-        local n = next_pos(p)
-        if not n or char(n) == "\n" or class(char(n), long) ~= c then break end
-        p = n
-    end
-    return start, p
-end
-
--- b / B: from start back to the beginning of the previous word
-function motions.prev_start(start, long)
-    local p = start
-    while class(char(p), long) == "space" do
-        local n = prev_pos(p)
-        if not n then return start, p end
-        p = n
-    end
-    local c = class(char(p), long)
-    while true do
-        local n = prev_pos(p)
-        if not n or char(n) == "\n" or class(char(n), long) ~= c then break end
-        p = n
-    end
-    return start, p
+    return anchor, last
 end
 
 local function word_motion(kind, long)
     return function()
         local anchor, head = selection()
-        local a, h, has_sel = anchor, head, visual()
+        local a, h = anchor, head
+        walked = {}
         for _ = 1, vim.v.count1 do
-            local start = h
-            if kind == "prev_start" then
-                -- the char under a 1-wide cursor is not part of a backward motion (helix ranges are half-open)
-                if not has_sel or before(h, a) then start = prev_pos(h) or h end
-            elseif has_sel and not before(h, a) then
-                start = next_pos(h) or h                    -- a selection ends after its head
-            elseif kind == "next_end" then
-                local n = next_pos(h)                       -- already at a word end: go to the next one
-                if n and class(char(n), long) ~= class(char(h), long) then start = n end
-            end
-            local na, nh = motions[kind](start, long)
-            -- at the very end/start of the buffer there is nowhere to go: keep the current selection
-            if not (na[1] == nh[1] and na[2] == nh[2] and has_sel) then a, h = na, nh end
-            has_sel = true
+            local na, nh = word_move(kind, h, long)
+            if not na then break end
+            a, h = na, nh
         end
         select(M.extend and anchor or a, h)
     end
@@ -446,8 +422,8 @@ map("x", ">", ">gv", { desc = "indent" })
 map("x", "<", "<gv", { desc = "unindent" })
 map(nx, "=", lsp_format, { desc = "format selection" })
 map(nx, "<C-c>", toggle_comment, { desc = "toggle comment" })
-map("n", "Q", function() return vim.fn.reg_recording() ~= "" and "q" or "qq" end, { expr = true, desc = "record macro" })
-map("n", "q", "@q", { desc = "replay macro" })
+map(nx, "Q", function() return vim.fn.reg_recording() ~= "" and "q" or "qq" end, { expr = true, desc = "record macro" })
+map(nx, "q", "@q", { desc = "replay macro" })
 
 -- Search: n / N select the next match
 map("n", "n", "ngn", { desc = "select next match" })
