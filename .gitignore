@@ -23,6 +23,7 @@
 !/.config/i3/
 !/.config/kitty/
 !/.config/mimeapps.list
+!/.config/xdg-terminals.list
 !/.config/nvim/
 !/.config/picom/
 !/.config/polybar/
